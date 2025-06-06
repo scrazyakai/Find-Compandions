@@ -11,7 +11,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.yupi</groupId>
-    <artifactId>seacher-patner</artifactId>
+    <artifactId>search-patner</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>user-center-backend</name>
     <description>user-center-backend</description>
