@@ -1,7 +1,7 @@
 package com.yupi.usercenter.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.sun.org.glassfish.external.probe.provider.annotations.ProbeParam;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yupi.usercenter.common.BaseResponse;
 import com.yupi.usercenter.common.ErrorCode;
 import com.yupi.usercenter.common.ResultUtils;
@@ -16,11 +16,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Collections;
+import javax.xml.transform.Result;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.yupi.usercenter.contant.UserConstant.ADMIN_ROLE;
 import static com.yupi.usercenter.contant.UserConstant.USER_LOGIN_STATE;
 
 /**
@@ -31,6 +30,7 @@ import static com.yupi.usercenter.contant.UserConstant.USER_LOGIN_STATE;
  */
 @RestController
 @RequestMapping("/user")
+@CrossOrigin(origins = {"http://localhost:3000"})
 public class UserController {
 
     @Resource
@@ -119,7 +119,7 @@ public class UserController {
 
     @GetMapping("/search")
     public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
-        if (!isAdmin(request)) {
+        if (!userService.isAdmin(request)) {
             throw new BusinessException(ErrorCode.NO_AUTH, "缺少管理员权限");
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -133,7 +133,7 @@ public class UserController {
 
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
-        if (!isAdmin(request)) {
+        if (!userService.isAdmin(request)) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
         if (id <= 0) {
@@ -145,18 +145,6 @@ public class UserController {
 
     // [鱼皮的学习圈](https://yupi.icu) 从 0 到 1 求职指导，斩获 offer！1 对 1 简历优化服务、2000+ 求职面试经验分享、200+ 真实简历和建议参考、25w 字前后端精选面试题
 
-    /**
-     * 是否为管理员
-     *
-     * @param request
-     * @return
-     */
-    private boolean isAdmin(HttpServletRequest request) {
-        // 仅管理员可查询
-        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-        User user = (User) userObj;
-        return user != null && user.getUserRole() == ADMIN_ROLE;
-    }
     @GetMapping("/search/tags")
     public BaseResponse<List<User>> searchUserByTags(@RequestParam(required = false) List<String> tags ){
         if(CollectionUtils.isEmpty(tags)){
@@ -164,6 +152,21 @@ public class UserController {
         }
         List<User> users = userService.searchUserByTags(tags);
         return ResultUtils.success(users);
+    }
+    @PostMapping("/update")
+    public BaseResponse<Integer> updateUser(@RequestBody User user,HttpServletRequest request){
+        //判断user是否为空
+        if(user == null){
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        int result = userService.updateUser(user,request);
+        return ResultUtils.success(result);
+    }
+    //TODO 专门为修改头像写一个接口，上传头像到阿里OSS
+    @GetMapping("/recommend")
+    public BaseResponse<Page<User>> recommendUsers(long pageNum, long pageSize,HttpServletRequest request){
+        Page<User> userList = userService.recommedUsers(pageNum,pageSize,request);
+        return ResultUtils.success(userList);
     }
 
 }

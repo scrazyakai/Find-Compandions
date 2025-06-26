@@ -1,5 +1,6 @@
 package com.yupi.usercenter.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yupi.usercenter.model.domain.Tag;
 import com.yupi.usercenter.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -61,4 +62,34 @@ public interface IUserService extends IService<User> {
      * @return
      */
     List<User> searchUserByTags(List<String> tagList);
+
+    /**
+     * 更新用户信息
+     * @param user
+     * @return
+     */
+    int updateUser(User user,HttpServletRequest request);
+
+    /**
+     * 获取当前用户信息
+     * @param request
+     * @return
+     */
+    User getUserLogin(HttpServletRequest request);
+
+    /**
+     * 判断是不是管理员
+     * @param request
+     * @return
+     */
+    boolean isAdmin(HttpServletRequest request);
+
+    /**
+     * 推荐用户
+     * @param pageNum
+     * @param pageSize
+     * @param request
+     * @return
+     */
+    Page<User> recommedUsers(long pageNum, long pageSize,HttpServletRequest request);
 }
