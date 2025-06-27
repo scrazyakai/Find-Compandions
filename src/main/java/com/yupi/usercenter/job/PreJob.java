@@ -2,11 +2,11 @@ package com.yupi.usercenter.job;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.yupi.usercenter.exception.BusinessException;
 import com.yupi.usercenter.model.domain.User;
 import com.yupi.usercenter.service.IUserService;
-import com.yupi.usercenter.service.impl.UserServiceImpl;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,31 +24,42 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class PreJob {
     @Resource
-    private final IUserService userService;
+    private  IUserService userService;
     @Resource
-    private final RedisTemplate<String, Object> redisTemplate;
+    private  RedisTemplate<String, Object> redisTemplate;
+    @Resource
+    private  RedissonClient redissonClient;
     //每天23:59:00缓存预热一次
     List<Long> mainUserList = Arrays.asList(1L);
 
-    public PreJob(IUserService userService, RedisTemplate<String, Object> redisTemplate) {
-        this.userService = userService;
-        this.redisTemplate = redisTemplate;
-    }
-
-    @Scheduled(cron = "0 59 23 * * ?" )
+    @Scheduled(cron = "0 0 4 * * ?" )
 
     public void doCacheRecommendUser(){
-        for(Long userId : mainUserList){
-            QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-            Page<User> userPage = userService.page(new Page<>(1,20),queryWrapper);
-            String redisKey = String.format("seacher-partner:user:recommend:%s",userId);
-            ValueOperations<String,Object> valueOperations = redisTemplate.opsForValue();
-            try {
-                valueOperations.set(redisKey,userPage,30000, TimeUnit.MILLISECONDS);
-            } catch (Exception e) {
-                log.error("Redis set key error");
+        RLock lock = redissonClient.getLock("yupao:Prejob:docahche:lock");
+
+        try {
+            if((lock.tryLock(0,30000L,TimeUnit.MILLISECONDS))){
+                for(Long userId : mainUserList){
+                    QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+                    Page<User> userPage = userService.page(new Page<>(1,20),queryWrapper);
+                    String redisKey = String.format("seacher-partner:user:recommend:%s",userId);
+                    ValueOperations<String,Object> valueOperations = redisTemplate.opsForValue();
+                    //写缓存
+                    try {
+                        valueOperations.set(redisKey,userPage,30000, TimeUnit.MILLISECONDS);
+                    } catch (Exception e) {
+                        log.error("Redis set key error");
+                    }
+                }
             }
 
+        } catch (Exception e) {
+            log.error("doCacheRecommendUser error" ,e);
+        }finally {
+            //判断是否是当前线程的锁
+            if(lock.isHeldByCurrentThread()){
+                lock.unlock();
+            }
         }
     }
 
