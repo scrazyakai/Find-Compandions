@@ -2,6 +2,7 @@ package com.yupi.usercenter.service;
 
 import com.yupi.usercenter.model.domain.Team;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.yupi.usercenter.model.domain.User;
 
 /**
  * <p>
@@ -12,5 +13,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2025-06-04
  */
 public interface ITeamService extends IService<Team> {
-
+    long addTeam(Team team, User loginUser);
 }

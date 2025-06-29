@@ -4,8 +4,12 @@ import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.io.Serializable;
+import java.util.Date;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -50,7 +54,7 @@ public class Team implements Serializable {
     /**
      * 过期时间
      */
-    private LocalDateTime expireTime;
+    private Date expireTime;
 
     /**
      * 用户id（队长 id）
@@ -70,9 +74,9 @@ public class Team implements Serializable {
     /**
      * 创建时间
      */
-    private LocalDateTime createTime;
+    private Date createTime;
 
-    private LocalDateTime updateTime;
+    private Date updateTime;
 
     /**
      * 是否删除
