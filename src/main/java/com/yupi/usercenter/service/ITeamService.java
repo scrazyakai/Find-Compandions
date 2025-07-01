@@ -5,6 +5,7 @@ import com.yupi.usercenter.model.domain.Team;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.yupi.usercenter.model.domain.User;
 import com.yupi.usercenter.model.dto.TeamQuery;
+import com.yupi.usercenter.model.request.DeleteRequest;
 import com.yupi.usercenter.model.request.TeamJoinRequest;
 import com.yupi.usercenter.model.request.TeamQuitRequest;
 import com.yupi.usercenter.model.request.TeamUpdateRequest;
@@ -35,7 +36,7 @@ public interface ITeamService extends IService<Team> {
      * @param teamQuery
      * @return
      */
-    List<TeamUserVO> teamList(TeamQuery teamQuery,boolean isAdmin);
+    List<TeamUserVO> listTeam(TeamQuery teamQuery,boolean isAdmin);
 
     /**
      * 更新队伍信息
@@ -63,9 +64,9 @@ public interface ITeamService extends IService<Team> {
 
     /**
      * 删除队伍
-     * @param id
+     * @param deleteRequest
      * @param loginUser
      * @return
      */
-    boolean deleteTeam(long id, User loginUser);
+    boolean deleteTeam(DeleteRequest deleteRequest, User loginUser);
 }

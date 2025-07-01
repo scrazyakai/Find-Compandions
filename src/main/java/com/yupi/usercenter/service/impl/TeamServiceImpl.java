@@ -6,11 +6,13 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.yupi.usercenter.common.ErrorCode;
 import com.yupi.usercenter.enums.StatusEnum;
 import com.yupi.usercenter.exception.BusinessException;
+import com.yupi.usercenter.mapper.UserTeamMapper;
 import com.yupi.usercenter.model.domain.Team;
 import com.yupi.usercenter.mapper.TeamMapper;
 import com.yupi.usercenter.model.domain.User;
 import com.yupi.usercenter.model.domain.UserTeam;
 import com.yupi.usercenter.model.dto.TeamQuery;
+import com.yupi.usercenter.model.request.DeleteRequest;
 import com.yupi.usercenter.model.request.TeamJoinRequest;
 import com.yupi.usercenter.model.request.TeamQuitRequest;
 import com.yupi.usercenter.model.request.TeamUpdateRequest;
@@ -22,6 +24,7 @@ import com.yupi.usercenter.service.IUserService;
 import com.yupi.usercenter.service.IUserTeamService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +51,8 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements IT
     private IUserTeamService userTeamService;
     @Resource
     private IUserService userService;
+    @Autowired
+    private UserTeamMapper userTeamMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -127,70 +132,72 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements IT
         return teamId;
     }
 
-    @Override
-    public List<TeamUserVO> teamList(TeamQuery teamQuery,boolean isAdmin) {
+    public List<TeamUserVO> listTeam(TeamQuery teamQuery, boolean isAdmin) {
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
-        if(teamQuery != null){
+        // 组合查询条件
+        if (teamQuery != null) {
             Long id = teamQuery.getId();
-            if(id != null && id > 0){
-                queryWrapper.eq("id",id);
+            if (id != null && id > 0) {
+                queryWrapper.eq("id", id);
             }
             List<Long> idList = teamQuery.getIdList();
-            if(CollectionUtils.isNotEmpty(idList)){
-                queryWrapper.in("id",idList);
+            if (CollectionUtils.isNotEmpty(idList)) {
+                queryWrapper.in("id", idList);
             }
             String searchText = teamQuery.getSearchText();
-            if(StringUtils.isNotBlank(searchText)){
+            if (StringUtils.isNotBlank(searchText)) {
                 queryWrapper.and(qw -> qw.like("name", searchText).or().like("description", searchText));
             }
             String name = teamQuery.getName();
-            if(StringUtils.isNotBlank(name)){
-                queryWrapper.like("name",name);
+            if (StringUtils.isNotBlank(name)) {
+                queryWrapper.like("name", name);
             }
             String description = teamQuery.getDescription();
-            if(StringUtils.isNotBlank(description) && description.length() <= 512){
-                queryWrapper.like("description",description);
+            if (StringUtils.isNotBlank(description)) {
+                queryWrapper.like("description", description);
             }
-
             Integer maxNum = teamQuery.getMaxNum();
-            if(maxNum != null && maxNum > 0){
-                queryWrapper.eq("maxNum",maxNum);
+            // 查询最大人数相等的
+            if (maxNum != null && maxNum > 0) {
+                queryWrapper.eq("maxNum", maxNum);
             }
             Long userId = teamQuery.getUserId();
-            if(userId != null && userId > 0){
-                queryWrapper.eq("userId",userId);
+            // 根据创建人来查询
+            if (userId != null && userId > 0) {
+                queryWrapper.eq("userId", userId);
             }
+            // 根据状态来查询
             Integer status = teamQuery.getStatus();
-            StatusEnum statusStr = StatusEnum.getEnumByValue(status);
-            //没有状态默认为PUBLIC，PRIVATE只有管理员能查询到，SECRET只能通过密钥查找
-            if(status == null){
-                statusStr = PUBLIC;
+            StatusEnum statusEnum = StatusEnum.getEnumByValue(status);
+            if (statusEnum == null) {
+                statusEnum = StatusEnum.PUBLIC;
             }
-            if(!isAdmin&&statusStr.equals(PRIVATE)){
+            if (!isAdmin && statusEnum.equals(StatusEnum.PRIVATE)) {
                 throw new BusinessException(ErrorCode.NO_AUTH);
             }
-            queryWrapper.eq("status",statusStr.getValue());
+            queryWrapper.eq("status", statusEnum.getValue());
         }
-
-        //查询队伍中所有用户的信息
+        // 不展示已过期的队伍
+        // expireTime is null or expireTime > now()
+        queryWrapper.and(qw -> qw.gt("expireTime", new Date()).or().isNull("expireTime"));
         List<Team> teamList = this.list(queryWrapper);
-        if(teamList.isEmpty()){
+        if (CollectionUtils.isEmpty(teamList)) {
             return new ArrayList<>();
         }
         List<TeamUserVO> teamUserVOList = new ArrayList<>();
-        for(Team team : teamList){
-            //用户信息脱敏
+        // 关联查询创建人的用户信息
+        for (Team team : teamList) {
             Long userId = team.getUserId();
-            if(userId == null){
+            if (userId == null) {
                 continue;
             }
-            //脱敏队伍信息(队伍密钥)
+            User user = userService.getById(userId);
             TeamUserVO teamUserVO = new TeamUserVO();
-            BeanUtils.copyProperties(team,teamUserVO);
-            User user = userService.getById(teamQuery.getUserId());
-            if(user != null){
+            BeanUtils.copyProperties(team, teamUserVO);
+            // 脱敏用户信息
+            if (user != null) {
                 UserVO userVO = new UserVO();
-                BeanUtils.copyProperties(user,userVO);
+                BeanUtils.copyProperties(user, userVO);
                 teamUserVO.setCreateUser(userVO);
             }
             teamUserVOList.add(teamUserVO);
@@ -351,7 +358,11 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements IT
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean deleteTeam(long id, User loginUser) {
+    public boolean deleteTeam(DeleteRequest deleteRequest, User loginUser) {
+        if(deleteRequest == null){
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        long id = deleteRequest.getId();
         if(id <= 0){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -373,5 +384,6 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements IT
         //删除队伍
         return removeById(id);
     }
+
 
 }
