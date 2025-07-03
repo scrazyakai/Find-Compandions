@@ -51,10 +51,10 @@ public class UserController {
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
         String planetCode = userRegisterRequest.getPlanetCode();
-        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword, planetCode)) {
+        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
             return null;
         }
-        long result = userService.userRegister(userAccount, userPassword, checkPassword, planetCode);
+        long result = userService.userRegister(userAccount, userPassword, checkPassword);
         return ResultUtils.success(result);
     }
 
@@ -142,14 +142,12 @@ public class UserController {
         return ResultUtils.success(b);
     }
 
-    // [鱼皮的学习圈](https://yupi.icu) 从 0 到 1 求职指导，斩获 offer！1 对 1 简历优化服务、2000+ 求职面试经验分享、200+ 真实简历和建议参考、25w 字前后端精选面试题
-
     @GetMapping("/search/tags")
-    public BaseResponse<List<User>> searchUserByTags(@RequestParam(required = false) List<String> tags ){
-        if(CollectionUtils.isEmpty(tags)){
+    public BaseResponse<List<User>> searchUserByTags(@RequestParam(required = false) List<String> tagNameList){
+        if(CollectionUtils.isEmpty(tagNameList)){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        List<User> users = userService.searchUserByTags(tags);
+        List<User> users = userService.searchUserByTags(tagNameList);
         return ResultUtils.success(users);
     }
     @PostMapping("/update")
@@ -166,6 +164,14 @@ public class UserController {
     public BaseResponse<Page<User>> recommendUsers(long pageNum, long pageSize,HttpServletRequest request){
         Page<User> userList = userService.recommedUsers(pageNum,pageSize,request);
         return ResultUtils.success(userList);
+    }
+    @GetMapping("/match")
+    public BaseResponse<List<User>> matchesUsers(long num, HttpServletRequest request){
+        if(num <= 0 || num > 20){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getUserLogin(request);
+        return ResultUtils.success(userService.machesUsers(num,loginUser));
     }
 
 }

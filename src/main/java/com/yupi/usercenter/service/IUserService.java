@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yupi.usercenter.model.domain.Tag;
 import com.yupi.usercenter.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.yupi.usercenter.model.vo.UserVO;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -26,7 +27,7 @@ public interface IUserService extends IService<User> {
      * @param planetCode    星球编号
      * @return 新用户 id
      */
-    long userRegister(String userAccount, String userPassword, String checkPassword, String planetCode);
+    long userRegister(String userAccount, String userPassword, String checkPassword);
 
     /**
      * 用户登录
@@ -92,4 +93,12 @@ public interface IUserService extends IService<User> {
      * @return
      */
     Page<User> recommedUsers(long pageNum, long pageSize,HttpServletRequest request);
+
+    /**
+     * 推荐用户
+     * @param num
+     * @param loginUser
+     * @return
+     */
+    List<User> machesUsers(long num, User loginUser);
 }
