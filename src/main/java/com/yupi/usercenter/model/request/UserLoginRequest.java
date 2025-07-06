@@ -27,5 +27,4 @@ public class UserLoginRequest implements Serializable {
      */
     private String userPassword;
 
-    // https://www.code-nav.cn/
 }

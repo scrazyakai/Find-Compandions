@@ -8,14 +8,16 @@ import com.yupi.usercenter.common.ResultUtils;
 import com.yupi.usercenter.exception.BusinessException;
 import com.yupi.usercenter.model.domain.User;
 import com.yupi.usercenter.model.request.UserLoginRequest;
+import com.yupi.usercenter.model.request.UserRegisterAndLogin;
 import com.yupi.usercenter.model.request.UserRegisterRequest;
 import com.yupi.usercenter.service.IUserService;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.util.CollectionUtils;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,7 +36,6 @@ public class UserController {
 
     @Resource
     private IUserService userService;
-
     /**
      * 用户注册
      *
@@ -50,7 +51,6 @@ public class UserController {
         String userAccount = userRegisterRequest.getUserAccount();
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
-        String planetCode = userRegisterRequest.getPlanetCode();
         if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
             return null;
         }
@@ -76,6 +76,45 @@ public class UserController {
             return ResultUtils.error(ErrorCode.PARAMS_ERROR);
         }
         User user = userService.userLogin(userAccount, userPassword, request);
+        return ResultUtils.success(user);
+    }
+    @PostMapping("/registerAndLogin")
+    public BaseResponse<User> userRegisterAndLogin(
+            @RequestBody UserRegisterAndLogin req,
+            HttpServletRequest request) {
+
+        // 1. 入参校验
+        if (req == null
+                || StringUtils.isAnyBlank(req.getUserAccount(), req.getUserPassword(), req.getCheckPassword())) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "参数为空或不完整");
+        }
+        if (!req.getUserPassword().equals(req.getCheckPassword())) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "两次密码不一致");
+        }
+
+        // 2. 执行注册
+        long registerResult = userService.userRegister(
+                req.getUserAccount(),
+                req.getUserPassword(),
+                req.getCheckPassword()
+        );
+        // 如果注册返回值是 -1 之类的错误码（根据你的 userService 逻辑），直接返回错误
+        if (registerResult < 0) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "注册失败，账号可能已存在");
+        }
+
+        // 3. 注册成功后，执行登录
+        User user = userService.userLogin(
+                req.getUserAccount(),
+                req.getUserPassword(),
+                request
+        );
+
+        if (user == null) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "注册成功，但登录失败");
+        }
+
+        // 4. 返回登录用户信息
         return ResultUtils.success(user);
     }
 
@@ -143,11 +182,17 @@ public class UserController {
     }
 
     @GetMapping("/search/tags")
-    public BaseResponse<List<User>> searchUserByTags(@RequestParam(required = false) List<String> tagNameList){
-        if(CollectionUtils.isEmpty(tagNameList)){
+    public BaseResponse<List<User>> searchUserByTags(@RequestParam String tagNameList){
+        if(StringUtils.isBlank(tagNameList)){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        List<User> users = userService.searchUserByTags(tagNameList);
+        // 将 "大二,Python" → ["大二","Python"]
+        List<String> tagNames = Arrays.stream(tagNameList.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+
+        List<User> users = userService.searchUserByTags(tagNames);
         return ResultUtils.success(users);
     }
     @PostMapping("/update")

@@ -95,6 +95,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User user = new User();
         user.setUserAccount(userAccount);
         user.setUserPassword(encryptPassword);
+        String avatarDefaultUrl = "https://akainews.oss-cn-beijing.aliyuncs.com/Find-Compandions/%E2%80%98%E5%AF%BB%E4%BC%B4%E2%80%99%E5%9B%BE%E6%A0%87%20.png";
+        String defaultUserName = "寻伴成员";
+        user.setUsername(defaultUserName);
+        user.setAvatarUrl(avatarDefaultUrl);
         boolean saveResult = this.save(user);
         if (!saveResult) {
             return -1;
@@ -102,7 +106,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return user.getId();
     }
 
-    // [加入星球](https://www.code-nav.cn/) 从 0 到 1 项目实战，经验拉满！10+ 原创项目手把手教程、7 日项目提升训练营、60+ 编程经验分享直播、1000+ 项目经验笔记
+
 
     /**
      * 用户登录
@@ -226,6 +230,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if(userId <= 0){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+        //
+        if(user.getTags() != null){
+            String[] tags = user.getTags().split(",");
+            List<String> tagList = Arrays.stream(tags)
+                    .map(String::trim).
+                    filter(s -> !s.isEmpty()).
+                    collect(Collectors.toList());
+            Gson gson = new Gson();
+            String userTags = gson.toJson(tagList);
+            user.setTags(userTags);
+        }
         //检验身份（只有管理员和自己能修改密码
         User userLogin = getUserLogin(request);
         if(!isAdmin(request) && userId != userLogin.getId()){
@@ -235,6 +250,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if(oldUser == null){
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
+
         // 打印SQL执行前的用户对象状态
         int result = userMapper.updateById(user);
         return result;

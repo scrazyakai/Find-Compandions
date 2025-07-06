@@ -22,6 +22,7 @@ import com.yupi.usercenter.service.ITeamService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.yupi.usercenter.service.IUserService;
 import com.yupi.usercenter.service.IUserTeamService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,7 @@ import static com.yupi.usercenter.enums.StatusEnum.*;
  * @author 凯哥
  * @since 2025-06-04
  */
+@Slf4j
 @Service
 public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements ITeamService {
     @Resource
@@ -132,41 +134,64 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements IT
         return teamId;
     }
 
+    /**
+     * 列出队伍列表
+     * @param teamQuery 队伍查询条件
+     * @param isAdmin 是否是管理员
+     * @return 队伍用户VO列表
+     */
+    @Override
     public List<TeamUserVO> listTeam(TeamQuery teamQuery, boolean isAdmin) {
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
-        // 组合查询条件
+
         if (teamQuery != null) {
+            // ID 查询
             Long id = teamQuery.getId();
             if (id != null && id > 0) {
                 queryWrapper.eq("id", id);
             }
+
+            // ID 列表查询
             List<Long> idList = teamQuery.getIdList();
-            if (CollectionUtils.isNotEmpty(idList)) {
+            // Explicitly check for null or empty idList to avoid IN () clause
+            if (idList != null && !idList.isEmpty()) {
                 queryWrapper.in("id", idList);
+            } else {
+                // Log when idList is empty to debug why this happens
+                log.warn("idList is null or empty for teamQuery: {}", teamQuery);
             }
+
+            // 搜索文本 (对名称和描述进行模糊匹配)
             String searchText = teamQuery.getSearchText();
             if (StringUtils.isNotBlank(searchText)) {
                 queryWrapper.and(qw -> qw.like("name", searchText).or().like("description", searchText));
             }
+
+            // 名称模糊查询
             String name = teamQuery.getName();
             if (StringUtils.isNotBlank(name)) {
                 queryWrapper.like("name", name);
             }
+
+            // 描述模糊查询
             String description = teamQuery.getDescription();
             if (StringUtils.isNotBlank(description)) {
                 queryWrapper.like("description", description);
             }
+
+            // 最大人数相等查询
             Integer maxNum = teamQuery.getMaxNum();
-            // 查询最大人数相等的
             if (maxNum != null && maxNum > 0) {
                 queryWrapper.eq("maxNum", maxNum);
             }
+
+            // 根据创建人查询
             Long userId = teamQuery.getUserId();
-            // 根据创建人来查询
             if (userId != null && userId > 0) {
                 queryWrapper.eq("userId", userId);
             }
-            // 根据状态来查询
+
+            // 根据状态查询
             Integer status = teamQuery.getStatus();
             StatusEnum statusEnum = StatusEnum.getEnumByValue(status);
             if (statusEnum == null) {
@@ -176,25 +201,36 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements IT
                 throw new BusinessException(ErrorCode.NO_AUTH);
             }
             queryWrapper.eq("status", statusEnum.getValue());
+        } else {
+            // 如果 teamQuery 为空，默认只查询公共队伍
+            queryWrapper.eq("status", StatusEnum.PUBLIC.getValue());
         }
+
         // 不展示已过期的队伍
-        // expireTime is null or expireTime > now()
         queryWrapper.and(qw -> qw.gt("expireTime", new Date()).or().isNull("expireTime"));
+
+        // Debug: Log the generated SQL query
+        log.info("Generated QueryWrapper: {}", queryWrapper.getSqlSegment());
+
+        // Execute query
         List<Team> teamList = this.list(queryWrapper);
+
+        // 如果查询结果为空，返回空列表
         if (CollectionUtils.isEmpty(teamList)) {
             return new ArrayList<>();
         }
+
+        // 关联查询创建人用户信息并进行脱敏
         List<TeamUserVO> teamUserVOList = new ArrayList<>();
-        // 关联查询创建人的用户信息
         for (Team team : teamList) {
-            Long userId = team.getUserId();
-            if (userId == null) {
+            Long creatorUserId = team.getUserId();
+            if (creatorUserId == null) {
                 continue;
             }
-            User user = userService.getById(userId);
+            User user = userService.getById(creatorUserId);
             TeamUserVO teamUserVO = new TeamUserVO();
             BeanUtils.copyProperties(team, teamUserVO);
-            // 脱敏用户信息
+
             if (user != null) {
                 UserVO userVO = new UserVO();
                 BeanUtils.copyProperties(user, userVO);
