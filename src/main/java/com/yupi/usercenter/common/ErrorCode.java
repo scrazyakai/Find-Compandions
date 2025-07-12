@@ -1,13 +1,6 @@
 package com.yupi.usercenter.common;
 
-// 讲师 【coder_鱼_皮】 https://space.bilibili.com/12890453/
 
-/**
- * 错误码
- *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
- */
 public enum ErrorCode {
 
     SUCCESS(0, "ok", ""),
@@ -43,7 +36,6 @@ public enum ErrorCode {
         return message;
     }
 
-    // https://t.zsxq.com/0emozsIJh
 
     public String getDescription() {
         return description;
