@@ -23,7 +23,6 @@ aliyun:
     accessKeyId: ${OSS_ACCESS_KEY_ID}
     accessKeySecret: ${OSS_ACCESS_KEY_SECRET}
     bucketName: akainews
-
 #Redis配置
   redis:
     port: 6379
