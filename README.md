@@ -1,3 +1,4 @@
+```
 FindCompandions - 寻伴
  FindCompandions是一个高效、便捷的伙伴匹配平台，旨在帮助用户快速找到志同道合的伙伴，支持用户注册、登录、组队、实时聊天等核心功能。后端基于 Spring Boot 构建，集成 MyBatis-Plus、Redis、WebSocket 等技术，适用于学习、社交和实际应用场景。
 
@@ -104,3 +105,4 @@ aliyun:
 
 📬 联系我们
 如有建议或问题，请联系：[你的邮箱地址]。
+```
