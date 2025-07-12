@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.yupi</groupId>
-    <artifactId>search-patner</artifactId>
+    <artifactId>findCompandions</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>user-center-backend</name>
     <description>user-center-backend</description>
