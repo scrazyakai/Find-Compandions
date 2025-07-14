@@ -4,18 +4,28 @@ import io.lettuce.core.RedisClient;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RedissonConfig {
+
+    @Value("${redis.host:localhost}")
+    private String host;
+
+    @Value("${redis.port:6380}")
+    private int port;
+
+    @Value("${redis.database:1}")
+    private int database;
+
     @Bean
-    public RedissonClient redisClient(){
-        //1.创建配置
+    public RedissonClient redissonClient() {
         Config config = new Config();
-        String redisAddress = "redis://127.0.0.1:6379";
-        config.useSingleServer().setAddress(redisAddress).setDatabase(1);
-        //2.创建实例
+        // 直接使用 Spring 配置的 host 和 port
+        String redisAddress = "redis://" + host + ":" + port;
+        config.useSingleServer().setAddress(redisAddress).setDatabase(database);
         return Redisson.create(config);
     }
 }

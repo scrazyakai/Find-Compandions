@@ -35,14 +35,14 @@ public class PreJob {
     @Scheduled(cron = "0 0 4 * * ?" )
 
     public void doCacheRecommendUser(){
-        RLock lock = redissonClient.getLock("yupao:Prejob:docahche:lock");
+        RLock lock = redissonClient.getLock("findCompanions:Prejob:docahche:lock");
 
         try {
             if((lock.tryLock(0,30000L,TimeUnit.MILLISECONDS))){
                 for(Long userId : mainUserList){
                     QueryWrapper<User> queryWrapper = new QueryWrapper<>();
                     Page<User> userPage = userService.page(new Page<>(1,20),queryWrapper);
-                    String redisKey = String.format("seacher-partner:user:recommend:%s",userId);
+                    String redisKey = String.format("findCompanions:user:recommend:%s",userId);
                     ValueOperations<String,Object> valueOperations = redisTemplate.opsForValue();
                     //写缓存
                     try {
