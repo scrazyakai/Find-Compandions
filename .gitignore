@@ -1,4 +1,4 @@
-
+.env
 
 HELP.md
 target/
@@ -20,6 +20,7 @@ target/
 *.iws
 *.iml
 *.ipr
+*.yml
 
 ### NetBeans ###
 /nbproject/private/

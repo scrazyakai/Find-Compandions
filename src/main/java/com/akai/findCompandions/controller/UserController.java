@@ -28,7 +28,6 @@ import static com.akai.findCompandions.contant.UserConstant.USER_LOGIN_STATE;
  */
 @RestController
 @RequestMapping("/user")
-@CrossOrigin(origins = {"http://localhost:3000"})
 public class UserController {
 
     @Resource
