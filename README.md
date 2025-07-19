@@ -32,7 +32,7 @@
 
 项目采用经典的单体分层架构，并为分布式部署做好了准备。通过引入Redis实现Session共享和缓存，利用WebSocket实现实时通信。
 
-![alt text](image.png)
+![项目架构图](image.png)
 
 ## 🛠️ 技术栈
 
