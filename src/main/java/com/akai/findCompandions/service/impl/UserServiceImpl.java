@@ -1,5 +1,7 @@
 package com.akai.findCompandions.service.impl;
 
+import cn.dev33.satoken.jwt.SaJwtUtil;
+import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -42,12 +44,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Resource
     private UserMapper userMapper;
     @Resource
+    private IUserService userServiceImpl;
+    @Resource
     private RedisTemplate<String,Object> redisTemplate;
-
+    private static final String URL = "https://akainews.oss-cn-beijing.aliyuncs.com/Find-Compandions/%E2%80%98%E5%AF%BB%E4%BC%B4%E2%80%99%E5%9B%BE%E6%A0%87%20.png";
     /**
      * 盐值，混淆密码
      */
-    private static final String SALT = "yupi";
+    private static final String SALT = "akai";
 
     /**
      * 用户注册
@@ -93,7 +97,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User user = new User();
         user.setUserAccount(userAccount);
         user.setUserPassword(encryptPassword);
-        String avatarDefaultUrl = "https://akainews.oss-cn-beijing.aliyuncs.com/Find-Compandions/%E2%80%98%E5%AF%BB%E4%BC%B4%E2%80%99%E5%9B%BE%E6%A0%87%20.png";
+        String avatarDefaultUrl = URL;
         String defaultUserName = "寻伴成员";
         user.setUsername(defaultUserName);
         user.setAvatarUrl(avatarDefaultUrl);
@@ -111,11 +115,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      *
      * @param userAccount  用户账户
      * @param userPassword 用户密码
-     * @param request
      * @return 脱敏后的用户信息
      */
     @Override
-    public User userLogin(String userAccount, String userPassword, HttpServletRequest request) {
+    public User userLogin(String userAccount, String userPassword) {
         // 1. 校验
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
             return null;
@@ -147,7 +150,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 3. 用户脱敏
         User safetyUser = getSafetyUser(user);
         // 4. 记录用户的登录态
-        request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
+        StpUtil.login(safetyUser.getId());
+
         return safetyUser;
     }
 
@@ -170,7 +174,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safetyUser.setGender(originUser.getGender());
         safetyUser.setPhone(originUser.getPhone());
         safetyUser.setEmail(originUser.getEmail());
-        safetyUser.setPlanetCode(originUser.getPlanetCode());
         safetyUser.setUserRole(originUser.getUserRole());
         safetyUser.setUserStatus(originUser.getUserStatus());
         safetyUser.setTags(originUser.getTags());
@@ -181,13 +184,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     /**
      * 用户注销
      *
-     * @param request
      */
     @Override
-    public int userLogout(HttpServletRequest request) {
+    public boolean userLogout(long userId) {
         // 移除登录态
-        request.getSession().removeAttribute(USER_LOGIN_STATE);
-        return 1;
+        StpUtil.kickout(userId);
+        return true;
     }
 
     @Override
@@ -223,12 +225,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public int updateUser(User user, HttpServletRequest request) {
-        long userId = user.getId();
-        if(userId <= 0){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        //
+    public int updateUser(User user) {
         if(user.getTags() != null){
             String[] tags = user.getTags().split(",");
             List<String> tagList = Arrays.stream(tags)
@@ -240,8 +237,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             user.setTags(userTags);
         }
         //检验身份（只有管理员和自己能修改密码
-        User userLogin = getUserLogin(request);
-        if(!isAdmin(request) && userId != userLogin.getId()){
+        long userId = StpUtil.getLoginIdAsLong();
+        User userLogin = userServiceImpl.getById(userId);
+        if(userId != userLogin.getId()){
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
         User oldUser = userMapper.selectById(userId);
@@ -265,29 +263,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         return (User) userObj;
     }
-
-    @Deprecated
-    private List<User> searchUsersByTagsBySQL(List<String> tagNameList) {
-        if (CollectionUtils.isEmpty(tagNameList)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        // 拼接 and 查询
-        // like '%Java%' and like '%Python%'
-        for (String tagName : tagNameList) {
-            queryWrapper = queryWrapper.like("tags", tagName);
-        }
-        List<User> userList = userMapper.selectList(queryWrapper);
-        return userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
-    }
     @Override
-    public boolean isAdmin(HttpServletRequest request) {
+    public boolean isAdmin() {
+        long userId = StpUtil.getLoginIdAsLong();
         // 仅管理员可查询
-        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-        User user = (User) userObj;
+        User user = userServiceImpl.getById(userId);
         return user != null && user.getUserRole() == ADMIN_ROLE;
     }
-
+    //TODO 使用ES实现
     @Override
     public Page<User> recommedUsers(long pageNum, long pageSize, HttpServletRequest request) {
         User userLogin = getUserLogin(request);
@@ -307,52 +290,4 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         return userPage;
     }
-
-    @Override
-    public List<User> machesUsers(long num, User loginUser) {
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select("id", "tags");
-        queryWrapper.isNotNull("tags");
-        List<User> userList = this.list(queryWrapper);
-        String tags = loginUser.getTags();
-        Gson gson = new Gson();
-        List<String> tagList = gson.fromJson(tags, new TypeToken<List<String>>() {
-        }.getType());
-        // 用户列表的下标 => 相似度
-        List<Pair<User, Long>> list = new ArrayList<>();
-        // 依次计算所有用户和当前用户的相似度
-        for (int i = 0; i < userList.size(); i++) {
-            User user = userList.get(i);
-            String userTags = user.getTags();
-            // 无标签或者为当前用户自己
-            if (StringUtils.isBlank(userTags) || user.getId() == loginUser.getId()) {
-                continue;
-            }
-            List<String> userTagList = gson.fromJson(userTags, new TypeToken<List<String>>() {
-            }.getType());
-            // 计算分数
-            long distance = AlgorithmUtils.minDistance(tagList, userTagList);
-            list.add(new Pair<>(user, distance));
-        }
-        // 按编辑距离由小到大排序
-        List<Pair<User, Long>> topUserPairList = list.stream()
-                .sorted((a, b) -> (int) (a.getValue() - b.getValue()))
-                .limit(num)
-                .collect(Collectors.toList());
-        // 原本顺序的 userId 列表
-        List<Long> userIdList = topUserPairList.stream().map(pair -> pair.getKey().getId()).collect(Collectors.toList());
-        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
-        userQueryWrapper.in("id", userIdList);
-        Map<Long, List<User>> userIdUserListMap = this.list(userQueryWrapper)
-                .stream()
-                .map(user -> getSafetyUser(user))
-                .collect(Collectors.groupingBy(User::getId));
-        List<User> finalUserList = new ArrayList<>();
-        for (Long userId : userIdList) {
-            finalUserList.add(userIdUserListMap.get(userId).get(0));
-        }
-        return finalUserList;
-    }
-
-
 }

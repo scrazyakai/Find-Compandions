@@ -257,7 +257,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements IT
             throw new BusinessException(ErrorCode.SYSTEM_ERROR,"队伍不存在");
         }
         long adminId = oldTeam.getUserId();
-        if(!userService.isAdmin(request) && adminId != loginUser.getId()){
+        if(!userService.isAdmin() && adminId != loginUser.getId()){
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
         if(SECRET.equals(StatusEnum.getEnumByValue(teamUpdateRequest.getStatus()))){

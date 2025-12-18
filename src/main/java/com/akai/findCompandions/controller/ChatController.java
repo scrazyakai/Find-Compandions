@@ -14,6 +14,7 @@ import com.akai.findCompandions.model.vo.ChatPrivateVO;
 import com.akai.findCompandions.service.IChatGroupService;
 import com.akai.findCompandions.service.IChatPrivateService;
 import com.akai.findCompandions.service.IUserService;
+import com.github.houbb.sensitive.word.core.SensitiveWordHelper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,6 +40,11 @@ public class ChatController {
         chatPrivateDTO.setSendTime(new Date());
         ChatPrivate chatPrivate = new ChatPrivate();
         BeanUtils.copyProperties(chatPrivateDTO, chatPrivate);
+        boolean containsSensitive =  SensitiveWordHelper.contains(chatPrivate.getContent());
+        if(containsSensitive){
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR,"内容违规");
+        }
+
         boolean success = chatPrivateService.save(chatPrivate);
         return ResultUtils.success(success);
     }
@@ -56,6 +62,10 @@ public class ChatController {
     public BaseResponse<Boolean> sendPrivate(@RequestBody ChatGroupDTO chatGroupDTO){
         if(chatGroupDTO == null){
             throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        boolean containsSensitive =  SensitiveWordHelper.contains(chatGroupDTO.getContent());
+        if(containsSensitive){
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR,"内容违规");
         }
         chatGroupDTO.setSendTime(new Date());
         return ResultUtils.success(chatGroupService.save(chatGroupDTO));

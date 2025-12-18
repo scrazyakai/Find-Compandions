@@ -32,9 +32,9 @@ public class RedisTemplateConfig {
         int database = singleServerConfig.getDatabase();
 
         RedisStandaloneConfiguration redisConfig = new RedisStandaloneConfiguration(host, port);
-        redisConfig.setPassword(RedisPassword.of(password));
+       // redisConfig.setPassword(RedisPassword.of(password));
         redisConfig.setDatabase(database);
-        redisConfig.setUsername("default"); // Redis 6+ 需要
+        //redisConfig.setUsername("default"); // Redis 6+ 需要
 
         return new LettuceConnectionFactory(redisConfig);
     }

@@ -90,7 +90,7 @@ public class TeamController {
         if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        boolean isAdmin = userService.isAdmin(request);
+        boolean isAdmin = userService.isAdmin();
         // 1、查询队伍列表
         List<TeamUserVO> teamList = teamService.listTeam(teamQuery, isAdmin);
         final List<Long> teamIdList = teamList.stream().map(TeamUserVO::getId).collect(Collectors.toList());

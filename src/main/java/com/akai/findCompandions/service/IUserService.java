@@ -31,10 +31,9 @@ public interface IUserService extends IService<User> {
      *
      * @param userAccount  用户账户
      * @param userPassword 用户密码
-     * @param request
      * @return 脱敏后的用户信息
      */
-    User userLogin(String userAccount, String userPassword, HttpServletRequest request);
+    User userLogin(String userAccount, String userPassword);
 
     /**
      * 用户脱敏
@@ -44,15 +43,13 @@ public interface IUserService extends IService<User> {
      */
     User getSafetyUser(User originUser);
 
-    // [加入编程导航](https://t.zsxq.com/0emozsIJh) 深耕编程提升【两年半】、国内净值【最高】的编程社群、用心服务【20000+】求学者、帮你自学编程【不走弯路】
 
     /**
      * 用户注销
      *
-     * @param request
      * @return
      */
-    int userLogout(HttpServletRequest request);
+    boolean userLogout(long userId);
 
     /**
      * 根据比钱查找用户
@@ -66,7 +63,7 @@ public interface IUserService extends IService<User> {
      * @param user
      * @return
      */
-    int updateUser(User user,HttpServletRequest request);
+    int updateUser(User user);
 
     /**
      * 获取当前用户信息
@@ -77,10 +74,9 @@ public interface IUserService extends IService<User> {
 
     /**
      * 判断是不是管理员
-     * @param request
      * @return
      */
-    boolean isAdmin(HttpServletRequest request);
+    boolean isAdmin();
 
     /**
      * 推荐用户
@@ -90,12 +86,4 @@ public interface IUserService extends IService<User> {
      * @return
      */
     Page<User> recommedUsers(long pageNum, long pageSize,HttpServletRequest request);
-
-    /**
-     * 推荐用户
-     * @param num
-     * @param loginUser
-     * @return
-     */
-    List<User> machesUsers(long num, User loginUser);
 }
