@@ -6,11 +6,6 @@ spring:
   profiles:
     active: dev
   # session 配置
-  session:
-    # 存储到redis中
-    store-type: redis
-    # session 超时时间，从 24 小时缩短为 1 小时 (3600秒)
-    timeout: 3600
 # 让spring boot项目支持通过代理访问
 server:
   forward-headers-strategy: native
