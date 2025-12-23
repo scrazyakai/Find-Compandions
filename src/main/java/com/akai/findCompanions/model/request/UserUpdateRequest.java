@@ -9,10 +9,6 @@ public class UserUpdateRequest {
      */
     private String username;
 
-    /**
-     * id
-     */
-    private Long id;
 
     /**
      * 账号

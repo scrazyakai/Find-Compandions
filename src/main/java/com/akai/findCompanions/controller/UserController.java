@@ -3,6 +3,7 @@ package com.akai.findCompanions.controller;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
 import com.akai.findCompanions.mapper.es.UserDocumentMapper;
+import com.akai.findCompanions.model.domain.Es.UserDocument;
 import com.akai.findCompanions.model.request.UserUpdateRequest;
 import com.akai.findCompanions.model.vo.UserCardVO;
 import com.akai.findCompanions.model.vo.UserLoginVO;
@@ -166,6 +167,7 @@ public class UserController {
         if(user == null){
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
+        BeanUtils.copyProperties(userUpdateRequest,user);
         int result = userService.updateUser(user);
         return ResultUtils.success(result);
     }

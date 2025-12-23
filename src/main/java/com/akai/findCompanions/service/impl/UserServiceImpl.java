@@ -237,11 +237,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         int result = userMapper.updateById(user);
         try {
             UserDocument doc = new UserDocument();
-            doc.setId(user.getId());
-            doc.setUsername(user.getUsername());
-            doc.setAvatarUrl(user.getAvatarUrl());
-            doc.setTags(tagList);
-            doc.setProfile(user.getProfile());
+            if (user.getId()!=null && user.getId() > 0) {
+                doc.setId(user.getId());
+            }
+            if (StringUtils.isNotBlank(user.getUsername())) {
+                doc.setUsername(user.getUsername());
+            }
+            if (StringUtils.isNotBlank(user.getAvatarUrl())) {
+                doc.setAvatarUrl(user.getAvatarUrl());
+            }
+            if (!tagList.isEmpty()) {
+                doc.setTags(tagList);
+            }
+            if (StringUtils.isNotBlank(user.getProfile())) {
+                doc.setProfile(user.getProfile());
+            }
             userDocumentMapper.updateById(doc);
         } catch (Exception e) {
             log.error("用户信息更新成功，但 ES 更新失败，userId={}", userId, e);

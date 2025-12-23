@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.akai.findCompanions.mapper.db.ActivityMapper">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        activityId, activityDesc, startTime, endTime, status, coverURL, maxMemberNumber, createTime, updateTime, ownerId, userAvatarURL, userName
+    </sql>
+
+</mapper>
