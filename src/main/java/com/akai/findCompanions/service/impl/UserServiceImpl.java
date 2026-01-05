@@ -235,29 +235,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         // 打印SQL执行前的用户对象状态
         int result = userMapper.updateById(user);
-        try {
-            UserDocument doc = new UserDocument();
-            if (user.getId()!=null && user.getId() > 0) {
-                doc.setId(user.getId());
-            }
-            if (StringUtils.isNotBlank(user.getUsername())) {
-                doc.setUsername(user.getUsername());
-            }
-            if (StringUtils.isNotBlank(user.getAvatarUrl())) {
-                doc.setAvatarUrl(user.getAvatarUrl());
-            }
-            if (!tagList.isEmpty()) {
-                doc.setTags(tagList);
-            }
-            if (StringUtils.isNotBlank(user.getProfile())) {
-                doc.setProfile(user.getProfile());
-            }
-            userDocumentMapper.updateById(doc);
-        } catch (Exception e) {
-            log.error("用户信息更新成功，但 ES 更新失败，userId={}", userId, e);
-            //TODO 失败补偿机制
-        }
-
         return result;
     }
 

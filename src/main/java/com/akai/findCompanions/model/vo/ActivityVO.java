@@ -7,7 +7,7 @@ import java.util.Date;
 
 @Data
 public class ActivityVO {
-
+    private Long activityId;
     /**
      * 活动描述
      */

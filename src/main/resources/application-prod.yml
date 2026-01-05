@@ -4,10 +4,10 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     # 生产数据库地址，从环境变量读取
-    url: jdbc:mysql://${DB_HOST:117.72.163.64}:${DB_PORT:3306}/${DB_NAME:findcompanionsdb}?useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://${DB_HOST:117.72.163.64}:${DB_PORT:3306}/${DB_NAME:findcompanions}?useSSL=false&serverTimezone=UTC
     # 生产数据库用户和密码，从环境变量读取
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    username: ${DB_USERNAME:mydb}
+    password: ${DB_PASSWORD:aEFjf7zJAEZS8tiy}
   redis:
     # 生产 Redis 地址，从环境变量读取
     host: ${REDIS_HOST:117.72.163.64}

@@ -3,13 +3,11 @@ package com.akai.findCompanions.controller;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
 import com.akai.findCompanions.mapper.es.UserDocumentMapper;
-import com.akai.findCompanions.model.domain.Es.UserDocument;
 import com.akai.findCompanions.model.request.UserUpdateRequest;
-import com.akai.findCompanions.model.vo.UserCardVO;
 import com.akai.findCompanions.model.vo.UserLoginVO;
 import com.akai.findCompanions.model.vo.UserRecommendVO;
 
-import com.aliyuncs.ram.model.v20150501.UpdateUserRequest;
+import com.akai.findCompanions.model.vo.UserVO;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.akai.findCompanions.common.BaseResponse;
 import com.akai.findCompanions.common.ErrorCode;
@@ -27,9 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -114,12 +110,12 @@ public class UserController {
      */
     @SaCheckLogin
     @GetMapping("/current")
-    public BaseResponse<UserCardVO> getCurrentUser() {
+    public BaseResponse<UserVO> getCurrentUser() {
         long userId = StpUtil.getLoginIdAsLong();
         User user = userService.getById(userId);
-        UserCardVO userCardVO = new UserCardVO();
-        BeanUtils.copyProperties(user, userCardVO);
-        return ResultUtils.success(userCardVO);
+        UserVO userVO = new UserVO();
+        BeanUtils.copyProperties(user, userVO);
+        return ResultUtils.success(userVO);
     }
 
     @GetMapping("/search")
@@ -146,12 +142,6 @@ public class UserController {
         }
         StpUtil.kickout(userId);
         boolean b = userService.removeById(userId);
-        try {
-            userDocumentMapper.deleteById(userId);
-        } catch (Exception e) {
-            //TODO 补偿机制
-            log.error("删除{}失败", userId, e);
-        }
         return ResultUtils.success(b);
     }
 
