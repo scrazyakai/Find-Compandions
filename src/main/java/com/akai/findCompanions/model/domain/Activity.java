@@ -100,5 +100,4 @@ public class Activity implements Serializable {
      */
     private String userName;
 
-
 }

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.akai.findCompanions.mapper.db.CommentLikeMapper">
+
+    <!-- 根据用户ID和评论ID查询点赞记录（忽略逻辑删除） -->
+    <select id="findByUserAndCommentIgnoreDelete" resultType="com.akai.findCompanions.model.domain.CommentLike">
+        SELECT * FROM comment_like
+        WHERE userId = #{userId} AND commentId = #{commentId}
+    </select>
+
+    <!-- 点赞（设置 isDelete = 0） -->
+    <update id="like">
+        UPDATE comment_like
+        SET isdelete = 0
+        WHERE userId = #{userId} AND commentId = #{commentId}
+    </update>
+
+    <!-- 取消点赞（设置 isDelete = 1） -->
+    <update id="unlike">
+        UPDATE comment_like
+        SET isdelete = 1
+        WHERE userId = #{userId} AND commentId = #{commentId}
+    </update>
+
+</mapper>
