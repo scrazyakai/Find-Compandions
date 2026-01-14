@@ -41,7 +41,6 @@ public class BusinessException extends RuntimeException {
         return code;
     }
 
-    // https://t.zsxq.com/0emozsIJh
 
     public String getDescription() {
         return description;

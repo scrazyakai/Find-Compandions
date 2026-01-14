@@ -44,4 +44,6 @@ public interface IActivityService extends IService<Activity> {
      * @return 是否成功
      */
     boolean quitActivity(Long activityId, Long userId);
+
+    boolean participantStatus(Long activityId);
 }

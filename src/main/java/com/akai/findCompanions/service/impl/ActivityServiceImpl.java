@@ -1,6 +1,9 @@
 package com.akai.findCompanions.service.impl;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.akai.findCompanions.common.ErrorCode;
+import com.akai.findCompanions.common.ResultUtils;
+import com.akai.findCompanions.enums.ActivityParticipantEnum;
 import com.akai.findCompanions.enums.ActivityStatusEnum;
 import com.akai.findCompanions.exception.BusinessException;
 import com.akai.findCompanions.model.domain.Activity;
@@ -9,6 +12,7 @@ import com.akai.findCompanions.mapper.db.ActivityMapper;
 import com.akai.findCompanions.mapper.db.ActivityMemberMapper;
 import com.akai.findCompanions.service.IActivityService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -119,14 +123,13 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
         // 4. 检查用户是否已经在活动中
         LambdaQueryWrapper<ActivityMember> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(ActivityMember::getActivityId, activityId)
-                .eq(ActivityMember::getUserId, userId)
-                .eq(ActivityMember::getIsDelete, 0);
+                .eq(ActivityMember::getUserId, userId);
         ActivityMember existingMember = activityMemberMapper.selectOne(queryWrapper);
         if (existingMember != null) {
-            if (existingMember.getStatus() == 1) {
+            if (existingMember.getStatus() == ActivityParticipantEnum.JOINED.getValue()) {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "您已经参与该活动");
-            } else if (existingMember.getStatus() == 2) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "您已经退出该活动");
+            } else if (existingMember.getStatus() == ActivityParticipantEnum.QUITED.getValue()) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "您已经退出该活动,不能频繁加入");
             }
         }
 
@@ -140,11 +143,9 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
         ActivityMember activityMember = new ActivityMember();
         activityMember.setUserId(userId);
         activityMember.setActivityId(activityId);
-        activityMember.setStatus(1); // 已加入
-        activityMember.setJoinTime(new Date());
+        activityMember.setStatus(ActivityParticipantEnum.JOINED.getValue());
         activityMember.setCreateTime(new Date());
         activityMember.setUpdateTime(new Date());
-        activityMember.setIsDelete(0);
         boolean result = activityMemberMapper.insert(activityMember) > 0;
 
         // 7. 更新活动当前参与人数
@@ -177,22 +178,21 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
         // 3. 查询用户是否在该活动中
         LambdaQueryWrapper<ActivityMember> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(ActivityMember::getActivityId, activityId)
-                .eq(ActivityMember::getUserId, userId)
-                .eq(ActivityMember::getIsDelete, 0);
+                .eq(ActivityMember::getUserId, userId);
         ActivityMember activityMember = activityMemberMapper.selectOne(queryWrapper);
         if (activityMember == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "您未参与该活动");
         }
 
         // 4. 检查用户状态
-        if (activityMember.getStatus() == 2) {
+        if (activityMember.getStatus() == ActivityParticipantEnum.QUITED.getValue()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "您已经退出该活动");
         }
 
         // 5. 更新成员状态为已退出
         ActivityMember updateMember = new ActivityMember();
         updateMember.setId(activityMember.getId());
-        updateMember.setStatus(2); // 已退出
+        updateMember.setStatus(ActivityParticipantEnum.QUITED.getValue()); // 已退出
         updateMember.setUpdateTime(new Date());
         boolean result = activityMemberMapper.updateById(updateMember) > 0;
 
@@ -206,5 +206,21 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
         }
 
         return result;
+    }
+
+    @Override
+    public boolean participantStatus(Long activityId) {
+        if(activityId == null || activityId <= 0){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"activityId非法");
+        }
+        Long userId = StpUtil.getLoginIdAsLong();
+        QueryWrapper<ActivityMember> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userId", userId);
+        queryWrapper.eq("activityId", activityId);
+        ActivityMember activityMember = activityMemberMapper.selectOne(queryWrapper);
+        if(activityMember == null){
+            return false;
+        }
+        return activityMember.getStatus() == ActivityParticipantEnum.JOINED.getValue();
     }
 }

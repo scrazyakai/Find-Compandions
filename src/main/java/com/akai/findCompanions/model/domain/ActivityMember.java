@@ -37,12 +37,6 @@ public class ActivityMember implements Serializable {
     private Long activityId;
     
     /**
-     * 加入时间
-     */
-    @TableField("joinTime")
-    private Date joinTime;
-    
-    /**
      * 加入状态(0-待审核,1-已加入,2-已退出)
      */
     @TableField("status")
@@ -59,10 +53,4 @@ public class ActivityMember implements Serializable {
      */
     @TableField("updateTime")
     private Date updateTime;
-    
-    /**
-     * 是否删除(0-未删除,1-已删除)
-     */
-    @TableLogic
-    private Integer isDelete;
 }

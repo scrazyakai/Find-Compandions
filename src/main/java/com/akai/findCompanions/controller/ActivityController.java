@@ -6,11 +6,9 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.akai.findCompanions.common.BaseResponse;
 import com.akai.findCompanions.common.ErrorCode;
 import com.akai.findCompanions.common.ResultUtils;
+import com.akai.findCompanions.enums.ActivityParticipantEnum;
 import com.akai.findCompanions.mapper.db.*;
-import com.akai.findCompanions.model.domain.Activity;
-import com.akai.findCompanions.model.domain.ActivityComment;
-import com.akai.findCompanions.model.domain.CommentContent;
-import com.akai.findCompanions.model.domain.User;
+import com.akai.findCompanions.model.domain.*;
 import com.akai.findCompanions.exception.BusinessException;
 import com.akai.findCompanions.model.request.ActivityJoinRequest;
 import com.akai.findCompanions.model.request.ActivityQuitRequest;
@@ -25,15 +23,11 @@ import com.akai.findCompanions.model.vo.ActivityVO;
 import com.akai.findCompanions.service.IActivityCommentService;
 import com.akai.findCompanions.service.IActivityService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -118,6 +112,7 @@ public class ActivityController {
         return ResultUtils.success(result);
     }
 
+
     @SaCheckLogin
     @PostMapping("/quit")
     public BaseResponse<Boolean> quitActivity(@RequestBody ActivityQuitRequest activityQuitRequest) {
@@ -132,7 +127,15 @@ public class ActivityController {
         boolean result = activityService.quitActivity(activityQuitRequest.getActivityId(), userId);
         return ResultUtils.success(result);
     }
-
+    @SaCheckLogin
+    @GetMapping("/{activityId}/participant")
+    public BaseResponse<Boolean> participantStatus(@PathVariable Long activityId){
+        if(activityId == null || activityId <= 0){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        boolean participant = activityService.participantStatus(activityId);
+        return ResultUtils.success(participant);
+    }
     @PostMapping("/list")
     public BaseResponse<Page<ActivityVO>> list(@RequestParam(defaultValue = "1") int pageNo) {
         if(pageNo <= 0){
@@ -157,8 +160,6 @@ public class ActivityController {
         result.setRecords(collect);
         return ResultUtils.success(result);
     }
-
-    // ======================== 评论相关接口 ========================
 
     /**
      * 添加评论
