@@ -28,4 +28,20 @@ public interface IActivityService extends IService<Activity> {
      * @return 是否成功
      */
     boolean updateActivity(Activity activity, Long userId);
+
+    /**
+     * 用户参与活动
+     * @param activityId 活动ID
+     * @param userId 当前登录用户ID
+     * @return 是否成功
+     */
+    boolean joinActivity(Long activityId, Long userId);
+
+    /**
+     * 用户退出活动
+     * @param activityId 活动ID
+     * @param userId 当前登录用户ID
+     * @return 是否成功
+     */
+    boolean quitActivity(Long activityId, Long userId);
 }

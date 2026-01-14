@@ -99,5 +99,9 @@ public class Activity implements Serializable {
      * 用户昵称
      */
     private String userName;
+    /**
+     * 当前参与人数
+     */
+    private Integer currentMemberNumber;
 
 }

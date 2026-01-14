@@ -131,4 +131,94 @@ CREATE TABLE `user_team`  (
                               PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 20 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户队伍关系' ROW_FORMAT = Dynamic;
 
+-- ----------------------------
+-- Table structure for activity
+-- ----------------------------
+DROP TABLE IF EXISTS `activity`;
+CREATE TABLE `activity`  (
+    `activityId` bigint(20) NOT NULL COMMENT '活动id',
+    `activityDesc` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '活动描述',
+    `startTime` datetime NOT NULL COMMENT '开始时间',
+    `endTime` datetime NOT NULL COMMENT '结束时间',
+    `status` tinyint(4) NOT NULL COMMENT '活动状态(1未开始，2正在进行中，3已结束，4已取消)',
+    `coverURL` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '封面',
+    `maxMemberNumber` int(11) NULL DEFAULT NULL COMMENT '最大活动人数',
+    `createTime` datetime NULL DEFAULT NULL COMMENT '创建时间',
+    `updateTime` datetime NULL DEFAULT NULL COMMENT '更新时间',
+    `ownerId` bigint(20) NOT NULL COMMENT '创建者Id',
+    `userAvatarURL` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '用户头像URL',
+    `userName` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '用户昵称',
+    `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '活动加密',
+    PRIMARY KEY (`activityId`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for activity_comment
+-- ----------------------------
+DROP TABLE IF EXISTS `activity_comment`;
+CREATE TABLE `activity_comment`  (
+    `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `userId` bigint(20) NOT NULL COMMENT '用户Id',
+    `activityId` bigint(20) NOT NULL COMMENT '活动Id',
+    `parentId` bigint(20) NULL DEFAULT NULL COMMENT '父评论Id',
+    `imageURL` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+    `isTop` tinyint(4) NULL DEFAULT NULL,
+    `level` tinyint(4) NOT NULL DEFAULT 1 COMMENT '评论级别(1代表一级标题，2代表二级标题)',
+    `replyTotal` bigint(20) NOT NULL DEFAULT 0 COMMENT '回复总数，仅一级评论',
+    `likeTotal` bigint(20) NOT NULL DEFAULT 0 COMMENT '点赞总数',
+    `createTime` datetime NOT NULL COMMENT '创建时间',
+    `updateTime` datetime NOT NULL COMMENT '更新时间',
+    `status` tinyint(4) NOT NULL COMMENT '逻辑删除',
+    `replyCommentId` bigint(20) NULL DEFAULT NULL,
+    PRIMARY KEY (`id`) USING BTREE,
+    INDEX `activity_id_index`(`activityId`) USING BTREE,
+    INDEX `parent_id_idx`(`parentId`) USING BTREE,
+    INDEX `user_id_index`(`userId`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for comment_content
+-- ----------------------------
+DROP TABLE IF EXISTS `comment_content`;
+CREATE TABLE `comment_content`  (
+    `commentId` bigint(20) NOT NULL COMMENT '评论id',
+    `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '评论内容',
+    `yearMonth` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '年月',
+    `activityId` bigint(20) NOT NULL COMMENT '活动id',
+    PRIMARY KEY (`commentId`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for comment_like
+-- ----------------------------
+DROP TABLE IF EXISTS `comment_like`;
+CREATE TABLE `comment_like`  (
+    `id` bigint(20) NOT NULL AUTO_INCREMENT,
+    `userId` bigint(20) NOT NULL,
+    `commentId` bigint(20) NOT NULL,
+    `createTime` datetime NOT NULL,
+    `isdelete` tinyint(4) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE INDEX `comment_like_pk`(`userId`, `commentId`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for activity_member
+-- ----------------------------
+DROP TABLE IF EXISTS `activity_member`;
+CREATE TABLE `activity_member`  (
+    `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'id',
+    `userId` bigint(20) NOT NULL COMMENT '用户id',
+    `activityId` bigint(20) NOT NULL COMMENT '活动id',
+    `joinTime` datetime NULL DEFAULT NULL COMMENT '加入时间',
+    `status` tinyint(4) NOT NULL DEFAULT 1 COMMENT '加入状态(0-待审核,1-已加入,2-已退出)',
+    `createTime` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updateTime` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `isDelete` tinyint(4) NOT NULL DEFAULT 0 COMMENT '是否删除',
+    PRIMARY KEY (`id`) USING BTREE,
+    INDEX `idx_userId`(`userId`) USING BTREE,
+    INDEX `idx_activityId`(`activityId`) USING BTREE,
+    UNIQUE INDEX `uniq_user_activity`(`userId`, `activityId`) USING BTREE COMMENT '同一用户不能重复加入同一活动'
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '活动成员表' ROW_FORMAT = Dynamic;
+
 SET FOREIGN_KEY_CHECKS = 1;

@@ -169,6 +169,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         userLoginVO.setUsername(user.getUsername());
         userLoginVO.setToken(token);
+        userLoginVO.setUserId(user.getId());
         return userLoginVO;
     }
 

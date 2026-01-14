@@ -57,4 +57,8 @@ public class ActivityVO {
      * 用户昵称
      */
     private String userName;
+    /**
+     * 当前参与人数
+     */
+    private Integer currentMemberNumber;
 }

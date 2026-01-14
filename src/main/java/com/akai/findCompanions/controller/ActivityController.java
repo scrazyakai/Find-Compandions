@@ -6,16 +6,14 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.akai.findCompanions.common.BaseResponse;
 import com.akai.findCompanions.common.ErrorCode;
 import com.akai.findCompanions.common.ResultUtils;
+import com.akai.findCompanions.mapper.db.*;
 import com.akai.findCompanions.model.domain.Activity;
 import com.akai.findCompanions.model.domain.ActivityComment;
 import com.akai.findCompanions.model.domain.CommentContent;
 import com.akai.findCompanions.model.domain.User;
 import com.akai.findCompanions.exception.BusinessException;
-import com.akai.findCompanions.mapper.db.ActivityCommentMapper;
-import com.akai.findCompanions.mapper.db.ActivityMapper;
-import com.akai.findCompanions.mapper.db.CommentContentMapper;
-import com.akai.findCompanions.mapper.db.CommentLikeMapper;
-import com.akai.findCompanions.mapper.db.UserMapper;
+import com.akai.findCompanions.model.request.ActivityJoinRequest;
+import com.akai.findCompanions.model.request.ActivityQuitRequest;
 import com.akai.findCompanions.model.request.CommentAddRequest;
 import com.akai.findCompanions.model.request.CommentDeleteRequest;
 import com.akai.findCompanions.model.request.CommentListRequest;
@@ -29,6 +27,7 @@ import com.akai.findCompanions.service.IActivityService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -66,11 +65,16 @@ public class ActivityController {
     @Resource
     private UserMapper userMapper;
     private final int pageSize = 10;
+    @Autowired
+    private ActivityMemberMapper activityMemberMapper;
+
     @PostMapping("/add")
     public BaseResponse<Boolean> add(@RequestBody Activity activity) {
         if (activity == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "活动参数不能为空");
         }
+        // 设置初始参与人数为0
+        activity.setCurrentMemberNumber(0);
         boolean result = activityService.save(activity);
         return ResultUtils.success(result);
     }
@@ -98,8 +102,37 @@ public class ActivityController {
         boolean result = activityService.cancelActivity(activityId, userId);
         return ResultUtils.success(result);
     }
+    
+    @SaCheckLogin
+    @PostMapping("/join")
+    public BaseResponse<Boolean> joinActivity(@RequestBody ActivityJoinRequest activityJoinRequest) {
+        if (activityJoinRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数不能为空");
+        }
+        if (activityJoinRequest.getActivityId() == null || activityJoinRequest.getActivityId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "活动ID不能为空");
+        }
+
+        long userId = StpUtil.getLoginIdAsLong();
+        boolean result = activityService.joinActivity(activityJoinRequest.getActivityId(), userId);
+        return ResultUtils.success(result);
+    }
 
     @SaCheckLogin
+    @PostMapping("/quit")
+    public BaseResponse<Boolean> quitActivity(@RequestBody ActivityQuitRequest activityQuitRequest) {
+        if (activityQuitRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数不能为空");
+        }
+        if (activityQuitRequest.getActivityId() == null || activityQuitRequest.getActivityId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "活动ID不能为空");
+        }
+
+        long userId = StpUtil.getLoginIdAsLong();
+        boolean result = activityService.quitActivity(activityQuitRequest.getActivityId(), userId);
+        return ResultUtils.success(result);
+    }
+
     @PostMapping("/list")
     public BaseResponse<Page<ActivityVO>> list(@RequestParam(defaultValue = "1") int pageNo) {
         if(pageNo <= 0){

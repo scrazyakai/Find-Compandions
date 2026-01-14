@@ -260,13 +260,11 @@ public class ActivityCommentServiceImpl extends ServiceImpl<ActivityCommentMappe
 
         if (existingLike == null) {
             // 没有任何记录，插入新记录
-            log.info("未找到任何记录，执行插入新记录操作 - userId: {}, commentId: {}", userId, commentId);
             CommentLike commentLike = new CommentLike();
             commentLike.setUserId(userId);
             commentLike.setCommentId(commentId);
             commentLike.setCreateTime(LocalDateTime.now());
             commentLike.setIsDelete(DeleteStatusEnum.NOT_DELETED.getValue());
-
             commentLikeMapper.insert(commentLike);
             comment.setLikeTotal(comment.getLikeTotal() + 1);
             log.info("插入成功，当前点赞数: {}", comment.getLikeTotal());
@@ -277,12 +275,10 @@ public class ActivityCommentServiceImpl extends ServiceImpl<ActivityCommentMappe
 
             if (existingLike.getIsDelete() == DeleteStatusEnum.NOT_DELETED.getValue()) {
                 // 当前是未删除状态(0)，改为已删除(1) - 取消点赞
-                log.info("执行取消点赞操作，isDelete: 0 -> 1");
                 commentLikeMapper.unlike(existingLike.getUserId(), existingLike.getCommentId());
                 comment.setLikeTotal(comment.getLikeTotal() - 1);
             } else {
                 // 当前是已删除状态(1)，改为未删除(0) - 重新点赞
-                log.info("执行恢复点赞操作，isDelete: 1 -> 0");
                 commentLikeMapper.like(existingLike.getUserId(), existingLike.getCommentId());
                 comment.setLikeTotal(comment.getLikeTotal() + 1);
             }
