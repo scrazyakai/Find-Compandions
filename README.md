@@ -114,6 +114,29 @@ mvn clean package
 java -jar target/findCompandions-0.0.1-SNAPSHOT.jar
 ```
 
+
+## 🔄 MySQL 用户表到 ElasticSearch 增量同步（Canal + RocketMQ）
+
+项目已新增一条异步增量链路：
+
+1. Canal 订阅 MySQL `user` 表 binlog。
+2. 解析 `INSERT / UPDATE / DELETE` 后封装 `UserSyncMessage`。
+3. 生产者将消息发送到 RocketMQ Topic。
+4. 消费者订阅消息并对 ES `user_index` 执行 upsert / delete。
+
+默认配置位于 `src/main/resources/application.yml`：
+
+```yaml
+sync:
+  canal:
+    enabled: false # 默认关闭，需显式打开
+  mq:
+    topic: user_sync_topic
+    consumer-group: user_sync_consumer_group
+```
+
+运行前请确保 Canal Server 与 RocketMQ NameServer/Broker 可用，并通过环境变量配置连接参数。
+
 ## 📖 API接口文档
 
 项目启动后，即可访问由 **Knife4j** 生成的增强版API文档。
