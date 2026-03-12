@@ -149,6 +149,9 @@ sync:
   - 已在 `pom.xml` 显式加入 `canal.client`、`canal.protocol`、`canal.common`（`1.1.7`）。
   - 如果 IDE 仍报红，请执行 Maven 重新导入（`Reimport`）并清理本地缓存后重试。
 
+=======
+  
+运行前请确保 Canal Server 与 RocketMQ NameServer/Broker 可用，并通过环境变量配置连接参数。
 ## 📖 API接口文档
 
 项目启动后，即可访问由 **Knife4j** 生成的增强版API文档。
