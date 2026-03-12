@@ -133,9 +133,25 @@ sync:
   mq:
     topic: user_sync_topic
     consumer-group: user_sync_consumer_group
-  
+  full:
+    enabled: false # 首次接入时可临时打开，启动后执行一次全量
+    batch-size: 500
+```
+
+> 首次接入 ES 不建议用“测试类”做全量同步。推荐使用可配置的启动任务（本项目已提供），这样可以在测试/生产环境通过配置开关触发，并保留日志与可观测性。
+
 运行前请确保 Canal Server 与 RocketMQ NameServer/Broker 可用，并通过环境变量配置连接参数。
 
+
+### 常见问题
+
+- `import com.alibaba.otter.canal.protocol.CanalEntry` / `import com.alibaba.otter.canal.protocol.Message` 无法识别：
+  - 已在 `pom.xml` 显式加入 `canal.client`、`canal.protocol`、`canal.common`（`1.1.7`）。
+  - 如果 IDE 仍报红，请执行 Maven 重新导入（`Reimport`）并清理本地缓存后重试。
+
+=======
+  
+运行前请确保 Canal Server 与 RocketMQ NameServer/Broker 可用，并通过环境变量配置连接参数。
 ## 📖 API接口文档
 
 项目启动后，即可访问由 **Knife4j** 生成的增强版API文档。
