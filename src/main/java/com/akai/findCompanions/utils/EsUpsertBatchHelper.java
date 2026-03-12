@@ -7,7 +7,7 @@ import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.springframework.cglib.core.internal.Function;
+import java.util.function.Function;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;

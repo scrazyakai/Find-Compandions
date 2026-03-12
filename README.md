@@ -133,8 +133,7 @@ sync:
   mq:
     topic: user_sync_topic
     consumer-group: user_sync_consumer_group
-```
-
+  
 运行前请确保 Canal Server 与 RocketMQ NameServer/Broker 可用，并通过环境变量配置连接参数。
 
 ## 📖 API接口文档

@@ -71,3 +71,6 @@ sync:
     enabled: ${SYNC_MQ_ENABLED:true}
     topic: ${SYNC_MQ_TOPIC:user_sync_topic}
     consumer-group: ${SYNC_MQ_CONSUMER_GROUP:user_sync_consumer_group}
+  full:
+    enabled: ${SYNC_FULL_ENABLED:false}
+    batch-size: ${SYNC_FULL_BATCH_SIZE:500}
