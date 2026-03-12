@@ -133,13 +133,7 @@ sync:
   mq:
     topic: user_sync_topic
     consumer-group: user_sync_consumer_group
-  full:
-    enabled: false # 首次接入时可临时打开，启动后执行一次全量
-    batch-size: 500
-```
-
-> 首次接入 ES 不建议用“测试类”做全量同步。推荐使用可配置的启动任务（本项目已提供），这样可以在测试/生产环境通过配置开关触发，并保留日志与可观测性。
-
+  
 运行前请确保 Canal Server 与 RocketMQ NameServer/Broker 可用，并通过环境变量配置连接参数。
 
 ## 📖 API接口文档
