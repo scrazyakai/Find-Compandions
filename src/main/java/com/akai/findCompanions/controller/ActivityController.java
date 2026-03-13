@@ -187,7 +187,11 @@ public class ActivityController {
 
         // 获取当前登录用户ID
         long userId = StpUtil.getLoginIdAsLong();
-
+        //true是参与了，false是未参与
+        boolean status = activityService.participantStatus(commentAddRequest.getActivityId());
+        if(!status){
+            throw new BusinessException(ErrorCode.NO_AUTH,"没有参与活动，不能发表评论");
+        }
         // 调用服务层添加评论
         boolean result = activityCommentService.addComment(activityComment, commentAddRequest.getContent(), userId);
         if (!result) {

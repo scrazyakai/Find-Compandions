@@ -1,6 +1,7 @@
 package com.akai.findCompanions.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.akai.findCompanions.FindCompandionsApplication;
 import com.akai.findCompanions.model.domain.Activity;
 import com.akai.findCompanions.model.domain.User;
 import com.akai.findCompanions.model.request.CommentAddRequest;
@@ -20,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -30,7 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -40,11 +39,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @since 2026-01-06
  */
 @Slf4j
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")  // 使用测试配置
+@SpringBootTest(classes = FindCompandionsApplication.class)
 public class ActivityControllerCommentTest {
-
+    private MockMvc mvc;
     @Autowired
     private MockMvc mockMvc;
 
