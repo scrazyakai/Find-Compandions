@@ -46,3 +46,5 @@ sa-token:
   # 是否输出操作日志
   is-log: true
   jwt-secret-key: ${SA_TOKEN_JWT_SECRET:akai}
+rocketmq:
+  name-server: ${ROCKETMQ_NAME_SERVER:127.0.0.1:9876}

@@ -222,3 +222,22 @@ CREATE TABLE `activity_member`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '活动成员表' ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- ----------------------------
+-- Table structure for user_sync_compensation
+-- ----------------------------
+DROP TABLE IF EXISTS `user_sync_compensation`;
+CREATE TABLE `user_sync_compensation`  (
+    `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'id',
+    `userId` bigint(20) NOT NULL COMMENT 'user id',
+    `operationType` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'INSERT/UPDATE/DELETE',
+    `retryTimes` int(11) NOT NULL DEFAULT 0 COMMENT 'actual retry times',
+    `maxRetryTimes` int(11) NOT NULL DEFAULT 3 COMMENT 'max retry times',
+    `status` tinyint(4) NOT NULL DEFAULT 0 COMMENT '0-pending,1-success,2-failed',
+    `errorMessage` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT 'last error',
+    `payload` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT 'original mq payload',
+    `createTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
+    `updateTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
+    PRIMARY KEY (`id`) USING BTREE,
+    INDEX `idx_userId_status`(`userId`, `status`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'user sync compensation';

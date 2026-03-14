@@ -1,4 +1,4 @@
-package canal;
+package com.akai.findCompanions.canal;
 
 import com.alibaba.otter.canal.client.CanalConnector;
 import com.alibaba.otter.canal.client.CanalConnectors;

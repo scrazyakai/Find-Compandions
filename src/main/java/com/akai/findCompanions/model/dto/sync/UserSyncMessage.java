@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 用户增量同步消息
+ * User incremental sync message.
  */
 @Data
 public class UserSyncMessage implements Serializable {
@@ -26,13 +26,13 @@ public class UserSyncMessage implements Serializable {
 
     private Integer userStatus;
 
-    /** DB里逗号分隔的tags */
     private String tags;
 
     private String profile;
 
-    /** 逻辑删除标记 */
     private Integer isDelete;
+
+    private Integer retryTimes;
 
     private Date eventTime;
 }
