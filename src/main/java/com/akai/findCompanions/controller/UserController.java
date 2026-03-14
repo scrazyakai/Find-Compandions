@@ -2,7 +2,6 @@ package com.akai.findCompanions.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
-import com.akai.findCompanions.mapper.es.UserDocumentMapper;
 import com.akai.findCompanions.model.request.UserUpdateRequest;
 import com.akai.findCompanions.model.vo.UserLoginVO;
 import com.akai.findCompanions.model.vo.UserRecommendVO;
@@ -41,8 +40,6 @@ public class UserController {
 
     @Resource
     private IUserService userService;
-    @Autowired
-    private UserDocumentMapper userDocumentMapper;
 
     /**
      * 用户注册

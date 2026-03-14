@@ -32,7 +32,6 @@ aliyun:
     accessKeySecret: ${OSS_ACCESS_KEY_SECRET}
 sa-token:
   # token 名称（同时也是 cookie 名称）
-
   token-name: satoken
   # token 有效期（单位：秒） 默认30天，-1 代表永久有效
   timeout: 259200
@@ -47,30 +46,3 @@ sa-token:
   # 是否输出操作日志
   is-log: true
   jwt-secret-key: ${SA_TOKEN_JWT_SECRET:akai}
-
-# RocketMQ 配置
-rocketmq:
-  name-server: ${ROCKETMQ_NAME_SERVER:127.0.0.1:9876}
-  producer:
-    group: ${ROCKETMQ_PRODUCER_GROUP:user_sync_producer_group}
-
-# MySQL -> ES 增量同步配置（Canal + MQ）
-sync:
-  canal:
-    enabled: ${SYNC_CANAL_ENABLED:false}
-    host: ${CANAL_HOST:127.0.0.1}
-    port: ${CANAL_PORT:11111}
-    destination: ${CANAL_DESTINATION:example}
-    username: ${CANAL_USERNAME:}
-    password: ${CANAL_PASSWORD:}
-    database: ${CANAL_DATABASE:find_companions}
-    table: ${CANAL_TABLE:user}
-    batch-size: ${CANAL_BATCH_SIZE:100}
-    poll-interval-ms: ${CANAL_POLL_INTERVAL_MS:1000}
-  mq:
-    enabled: ${SYNC_MQ_ENABLED:true}
-    topic: ${SYNC_MQ_TOPIC:user_sync_topic}
-    consumer-group: ${SYNC_MQ_CONSUMER_GROUP:user_sync_consumer_group}
-  full:
-    enabled: ${SYNC_FULL_ENABLED:false}
-    batch-size: ${SYNC_FULL_BATCH_SIZE:500}

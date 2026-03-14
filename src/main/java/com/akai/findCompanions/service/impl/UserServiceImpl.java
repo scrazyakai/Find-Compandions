@@ -1,17 +1,10 @@
 package com.akai.findCompanions.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
-import com.akai.findCompanions.common.ResultUtils;
-import com.akai.findCompanions.enums.UserStatusEnum;
-import com.akai.findCompanions.mapper.es.UserDocumentMapper;
-import com.akai.findCompanions.model.domain.Es.UserDocument;
 import com.akai.findCompanions.model.vo.UserLoginVO;
 import com.akai.findCompanions.model.vo.UserRecommendVO;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.akai.findCompanions.common.ErrorCode;
 import com.akai.findCompanions.exception.BusinessException;
 import com.akai.findCompanions.model.domain.User;
@@ -19,18 +12,14 @@ import com.akai.findCompanions.service.IUserService;
 import com.akai.findCompanions.mapper.db.UserMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.dromara.easyes.core.conditions.select.LambdaEsQueryWrapper;
-import org.dromara.easyes.core.conditions.update.LambdaEsUpdateWrapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -46,8 +35,6 @@ import static com.akai.findCompanions.contant.UserConstant.USER_LOGIN_STATE;
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         implements IUserService {
-    @Resource
-    private UserDocumentMapper userDocumentMapper;
     @Resource
     private UserMapper userMapper;
     @Resource
@@ -111,14 +98,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (!saveResult) {
             return -1;
         }
-        try {
-            UserDocument userDocument = new UserDocument();
-            BeanUtils.copyProperties(user, userDocument);
-            userDocumentMapper.insert(userDocument);
-        } catch (Exception e) {
-            log.error("用户注册成功，但写入 ES 失败，userId={}", user.getId(), e);
-            //TODO 补偿机制
-        }
+        //TODO 实现es和mysql的同步
         return user.getId();
     }
 
@@ -257,7 +237,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User user = this.getById(userId);
         return user != null && user.getUserRole() == ADMIN_ROLE;
     }
-    //TODO 使用ES实现
     @Override
     public List<UserRecommendVO > recommedUsers(User loginUser) {
         List<String> tags = Arrays.stream(loginUser.getTags().split(","))
@@ -267,30 +246,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if(tags.isEmpty()){
             return Collections.emptyList();
         }
-        LambdaEsQueryWrapper<UserDocument> queryWrapper = new LambdaEsQueryWrapper<>();
-
-        queryWrapper.not(w -> w.eq(UserDocument::getId, loginUser.getId()));
-
-        queryWrapper.eq(
-                UserDocument::getUserStatus,
-                UserStatusEnum.NORMAL.getValue()
-        );
-
-        queryWrapper.and(w -> {
-            for (String tag : tags) {
-                w.should(s -> s.match(UserDocument::getTags, tag));
-            }
-        });
-
-        queryWrapper.size(5);
-
-        List<UserDocument> docList = userDocumentMapper.selectList(queryWrapper);
+        //TODO 使用ES实现推荐好友
         List<UserRecommendVO> result = new ArrayList<>();
-        for(UserDocument doc : docList){
-            UserRecommendVO vo = new UserRecommendVO();
-            BeanUtils.copyProperties(doc,vo);
-            result.add(vo);
-        }
         return result;
     }
 }

@@ -27,6 +27,7 @@
         <java.version>1.8</java.version>
         <mybatis-plus.version>3.5.1</mybatis-plus.version>
         <sa-token.version>1.38.0</sa-token.version>
+        <canal.version>1.1.7</canal.version>
     </properties>
 
     <!-- 依赖 -->
@@ -38,14 +39,6 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- MyBatis（⚠️ 不建议和 MyBatis-Plus 同时用，下面已处理） -->
-        <!--
-        <dependency>
-            <groupId>org.mybatis.spring.boot</groupId>
-            <artifactId>mybatis-spring-boot-starter</artifactId>
-            <version>2.2.2</version>
-        </dependency>
-        -->
 
         <!-- MyBatis Plus -->
         <dependency>
@@ -78,24 +71,31 @@
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.33</version>
         </dependency>
-
         <!-- Redis -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
+            <artifactId>canal.client</artifactId>
+            <version>${canal.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
+            <artifactId>canal.common</artifactId>
+            <version>${canal.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
+            <artifactId>canal.protocol</artifactId>
+            <version>${canal.version}</version>
+        </dependency>
         <!-- Redisson -->
         <dependency>
             <groupId>org.redisson</groupId>
             <artifactId>redisson</artifactId>
             <version>3.17.5</version>
-        </dependency>
-        <!--        easy-es-->
-        <dependency>
-            <groupId>org.dromara.easy-es</groupId>
-            <artifactId>easy-es-boot-starter</artifactId>
-            <version>2.1.0</version>
         </dependency>
 
 
@@ -202,7 +202,7 @@
             <dependency>
                 <groupId>org.elasticsearch</groupId>
                 <artifactId>elasticsearch</artifactId>
-                <version>7.17.9</version>
+                <version>7.3.0</version>
             </dependency>
             <dependency>
                 <groupId>org.elasticsearch</groupId>
